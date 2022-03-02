@@ -35,6 +35,8 @@ import useSWRInfinite, { SWRInfiniteKeyLoader } from 'swr/infinite'
 import { isUndefined } from 'lodash'
 import dayjs from 'dayjs'
 import InformationBox from 'components/ui/InformationBox'
+import useProjectSubscription from 'hooks/misc/useProjectSubscription'
+import Link from 'next/link'
 
 /**
  * Acts as a container component for the entire log display
@@ -67,6 +69,14 @@ export const LogPage: NextPage = () => {
   const checkIfSelectQuery = (value: string) =>
     value.toLowerCase().includes('select') ? true : false
   const isSelectQuery = checkIfSelectQuery(editorValue)
+  const [sub] = useProjectSubscription(ref as string)
+  const tier = sub ? sub?.tier.key : 'FREE'
+  const tierName = sub ? sub?.tier.name : 'Free tier'
+  const tierQueryWindow = {
+    FREE: '1 day',
+    PRO: '7 days',
+    PAYG: '3 months',
+  }[tier]
 
   useEffect(() => {
     setParams({ ...params, type: type as string })
@@ -264,17 +274,6 @@ export const LogPage: NextPage = () => {
               />
             </div>
             <div className="flex flex-row justify-end items-center px-2 py-1 w-full">
-              {isSelectQuery && (
-                <InformationBox
-                className="shrink mr-auto"
-                  block={false}
-                  size="tiny"
-                  icon={<IconInfo size="tiny" />}
-                  title={`Custom queries are restricted to a ${
-                    type === 'database' ? '2 hour' : '7 day'
-                  } querying window.`}
-                />
-              )}
               <div className="flex flex-row gap-x-2 justify-end p-2">
                 {editorValue && (
                   <Button
@@ -337,7 +336,7 @@ export const LogPage: NextPage = () => {
           )}
           <LogTable data={logData} isCustomQuery={mode === 'custom'} />
           {/* Footer section of log ui, appears below table */}
-          <div className="p-2">
+          <div className="p-2 flex flex-row gap-2 justify-between w-full">
             {!isSelectQuery && (
               <Button
                 // trigger page increase
@@ -348,6 +347,25 @@ export const LogPage: NextPage = () => {
                 Load older
               </Button>
             )}
+            <InformationBox
+              className="shrink text-grey-700"
+              block={false}
+              size="tiny"
+              icon={<IconInfo size="tiny" />}
+              title={
+                <div className="flex flex-row gap-2 items-center">
+                  <Typography.Text>
+                    {`${tierName} is limited to a ${tierQueryWindow} query window`}
+                  </Typography.Text>
+                  {tier !== 'PAYG' && (
+                    <Link href={`/project/${ref}/settings/billing`}>
+                      <Button size="tiny">Upgrade</Button>
+                    </Link>
+                  )}
+                </div>
+              }
+              hideCollapse
+            />
           </div>
         </div>
       </div>

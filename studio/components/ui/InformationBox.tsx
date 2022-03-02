@@ -73,6 +73,7 @@ const InformationBox: FC<Props> = ({
               </a>
             </div>
           )}
+          {cta}
         </div>
       </div>
     </div>
