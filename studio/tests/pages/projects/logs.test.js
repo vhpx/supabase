@@ -58,6 +58,11 @@ LogPage.mockImplementation((props) => {
   )
 })
 
+// mock subscription checking
+import useProjectSubscription from 'hooks/misc/useProjectSubscription'
+jest.mock('hooks/misc/useProjectSubscription')
+useProjectSubscription.mockReturnValue([{ tier: { name: 'Free tier', key: 'FREE' } }])
+
 import { render, fireEvent, waitFor, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { clickDropdown, getToggleByText } from '../../helpers'
@@ -298,8 +303,6 @@ test('custom sql querying', async () => {
   })
   editor = container.querySelector('.monaco-editor')
   userEvent.type(editor, 'select \ncount(*) as my_count \nfrom edge_logs')
-  // should show sandbox warning alert
-  await waitFor(() => screen.getByText(/restricted to a 7 day querying window/))
 
   // should trigger query
   userEvent.click(screen.getByText('Run'))

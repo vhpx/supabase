@@ -12,9 +12,10 @@ import {
   IconClock,
   Popover,
 } from '@supabase/ui'
-import { LogSearchCallback, LogTemplate } from '.'
+import { LogSearchCallback, LogTemplate, TIER_QUERY_LIMITS } from '.'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { Tier } from 'hooks/misc/useProjectSubscription'
 interface Props {
   defaultSearchValue?: string
   defaultFromValue?: string
@@ -28,6 +29,7 @@ interface Props {
   onSelectTemplate: (template: LogTemplate) => void
   isShowingEventChart: boolean
   onToggleEventChart: () => void
+  tier?: Tier
 }
 
 dayjs.extend(utc)
@@ -48,6 +50,7 @@ const LogPanel: FC<Props> = ({
   onSelectTemplate,
   isShowingEventChart,
   onToggleEventChart,
+  tier,
 }) => {
   const [search, setSearch] = useState('')
   const [from, setFrom] = useState({ value: '', error: '' })
@@ -68,8 +71,13 @@ const LogPanel: FC<Props> = ({
 
   const handleFromChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
-    if (value !== '' && isNaN(Date.parse(value))) {
+    const parsed = Date.parse(value)
+    const now = new Date().getTime()
+    const tierQueryLimit = TIER_QUERY_LIMITS[tier?.key || 'FREE']
+    if (value !== '' && isNaN(parsed)) {
       setFrom({ value, error: 'Invalid ISO 8601 timestamp' })
+    } else if (new Date(value).getTime() < now - tierQueryLimit.windowSeconds * 1000) {
+      setFrom({ value, error: `Query window is limited to ${tierQueryLimit.text}` })
     } else {
       setFrom({ value, error: '' })
     }
@@ -100,7 +108,9 @@ const LogPanel: FC<Props> = ({
                     ].join(' ')}
                   >
                     <div className="absolute z-20">
-                      <Typography.Text style={{ fontSize: '0.7rem' }} className="opacity-80">{newCount}</Typography.Text>
+                      <Typography.Text style={{ fontSize: '0.7rem' }} className="opacity-80">
+                        {newCount}
+                      </Typography.Text>
                     </div>
                     <div className="bg-green-600 rounded-full w-full h-full animate-ping opacity-40"></div>
                     <div className="absolute  z-60 top-0 right-0 bg-green-900 opacity-60 rounded-full w-full h-full "></div>

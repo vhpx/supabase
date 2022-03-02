@@ -1,3 +1,4 @@
+import { STRIPE_PRODUCT_IDS } from 'lib/constants'
 import { LogTemplate } from '.'
 
 export const TEMPLATES: LogTemplate[] = [
@@ -68,4 +69,10 @@ ORDER BY
 export const LOG_TYPE_LABEL_MAPPING: { [k: string]: string } = {
   api: 'API',
   database: 'Database',
+}
+
+export const TIER_QUERY_LIMITS = {
+  FREE: { text: '1 day', windowSeconds: 3600 * 24 },
+  PRO: { text: '7 days', windowSeconds: 3600 * 24 * 7 },
+  PAYG: { text: '3 months', windowSeconds: 3600 * 24 * 30 * 3 },
 }

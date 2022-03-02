@@ -1,5 +1,5 @@
 import LogPanel from 'components/interfaces/Settings/Logs/LogPanel'
-import { render, waitFor, screen } from '@testing-library/react'
+import { render, waitFor, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { getToggleByText } from 'tests/helpers'
 
@@ -132,4 +132,17 @@ test('custom query mode hides elements', async () => {
   await expect(screen.findByPlaceholderText(/Search/)).rejects.toThrow()
   await expect(screen.findByText('Now')).rejects.toThrow()
   await expect(screen.findByText('Custom')).rejects.toThrow()
+})
+
+test('upgrade nudge: timestamp input filter', async () => {
+  render(
+    <LogPanel tier={{ name: 'Pro tier', key: 'PRO' }} />
+  )
+  userEvent.click(await screen.findByText(/Now/))
+  const year = new Date().getFullYear()
+  const input = await screen.findByDisplayValue(RegExp(year))
+  userEvent.clear(input)
+  fireEvent.change(input, { target: { value: '2021-01-18T10:43:39+0000' } })
+
+  await screen.findByText(/limited to 7 days/)
 })
