@@ -22,9 +22,11 @@ export interface Project {
   cloud_provider: string
   region: string
   connectionString: string
+  db_host: string
   inserted_at: string
-  subscription_tier: string
-  subscription_tier_prod_id: string
+  kpsVersion: string
+  subscription_id: string
+  services: {}
 }
 
 export interface User {
