@@ -4,12 +4,20 @@ import { Typography } from '@supabase/ui'
 type TableProps = {
   body: JSX.Element | JSX.Element[]
   head?: JSX.Element | JSX.Element[]
+  headSecondRow?: JSX.Element | JSX.Element[]
   className?: string
   containerClassName?: string
   borderless?: boolean
 }
 
-function Table({ body, head, className, containerClassName, borderless }: TableProps) {
+function Table({
+  body,
+  head,
+  headSecondRow,
+  className,
+  containerClassName,
+  borderless,
+}: TableProps) {
   let containerClasses = ['table-container']
   if (containerClassName) containerClasses.push(containerClassName)
   if (borderless) containerClasses.push('table-container--borderless')
@@ -22,6 +30,7 @@ function Table({ body, head, className, containerClassName, borderless }: TableP
       <table className={classes.join(' ')}>
         <thead>
           <tr>{head}</tr>
+          {headSecondRow && <tr>{headSecondRow}</tr>}
         </thead>
         <tbody>{body}</tbody>
       </table>
@@ -29,17 +38,19 @@ function Table({ body, head, className, containerClassName, borderless }: TableP
   )
 }
 
-type ThProps = {
+interface ThProps {
   children?: React.ReactNode
   className?: string
   style?: React.CSSProperties
+  colSpan?: number
+  rowSpan?: number
 }
 
-const Th: React.FC<ThProps> = ({ children, className, style }) => {
+const Th: React.FC<ThProps> = ({ children, className, style, ...rest }) => {
   const classes = ['p-3 px-4 text-left']
   if (className) classes.push(className)
   return (
-    <th className={classes.join(' ')} style={style}>
+    <th className={classes.join(' ')} style={style} {...rest}>
       <Typography.Text type="secondary">{children}</Typography.Text>
     </th>
   )
@@ -68,8 +79,8 @@ type TdProps = {
   colSpan?: number
   className?: string
   style?: React.CSSProperties
-} &  React.HTMLProps<HTMLTableCellElement>
-const Td: React.FC<TdProps> = ({ children, colSpan, className, style , ...rest}) => {
+} & React.HTMLProps<HTMLTableCellElement>
+const Td: React.FC<TdProps> = ({ children, colSpan, className, style, ...rest }) => {
   return (
     <td className={className} colSpan={colSpan} style={style} {...rest}>
       {children}
