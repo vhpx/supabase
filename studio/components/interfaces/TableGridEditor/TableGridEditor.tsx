@@ -5,7 +5,7 @@ import { isUndefined, find } from 'lodash'
 import { SupabaseGrid, SupabaseGridRef, parseSupaTable, Dictionary } from '@supabase/grid'
 import { PostgresTable, PostgresColumn } from '@supabase/postgres-meta'
 
-import { useStore } from 'hooks'
+import { usePermissions, useStore } from 'hooks'
 import NotFoundState from './NotFoundState'
 import GridHeaderActions from './GridHeaderActions'
 import SidePanelEditor from './SidePanelEditor'
@@ -57,6 +57,10 @@ const TableGridEditor: FC<Props> = ({
   const { meta, ui } = useStore()
   const router = useRouter()
   const gridRef = useRef<SupabaseGridRef>(null)
+  const canEdit =
+    usePermissions('TENANT_ALTER', 'postgres.public') &&
+    usePermissions('TENANT_INSERT', 'postgres.public') &&
+    usePermissions('TENANT_UPDATE', 'postgres.public')
   const projectRef = ui.selectedProject?.ref
 
   if (isUndefined(selectedTable)) {
@@ -135,7 +139,7 @@ const TableGridEditor: FC<Props> = ({
         theme={theme}
         gridProps={{ height: '100%' }}
         storageRef={projectRef}
-        editable={!isViewSelected && selectedTable.schema === 'public'}
+        editable={!isViewSelected && selectedTable.schema === 'public' && canEdit}
         schema={selectedTable.schema}
         table={gridTable}
         headerActions={

@@ -7,7 +7,7 @@ import { Button, Typography, Toggle as UIToggle } from '@supabase/ui'
 import Divider from 'components/ui/Divider'
 
 import { API_URL } from 'lib/constants'
-import { withAuth, useStore } from 'hooks'
+import { withAuth, usePermissions, useStore } from 'hooks'
 import { authConfig } from 'stores/jsonSchema'
 import { get, patch } from 'lib/common/fetch'
 import { pluckJsonSchemaFields } from 'lib/helpers'
@@ -40,6 +40,7 @@ const Settings = () => {
   const [isCustomSMTPEnabled, setCustomSMTP] = useState<boolean>(false)
   const URL = `${API_URL}/auth/${router.query.ref}/config`
   const { data: config, error }: any = useSWR(URL, get)
+  const canUpdate = usePermissions('SQL_UPDATE', 'postgres.public.custom_config_gotrue')
   const { ref: projectRef } = router.query
 
   if (error) {
@@ -135,15 +136,17 @@ const Settings = () => {
             name="SITE_URL"
             showInlineError
             errorMessage="Please enter a valid site url."
+            disabled={!canUpdate}
           />
           <AutoField
             name="URI_ALLOW_LIST"
             showInlineError
             errorMessage="Must be a comma separated list of exact URIs. No spaces."
+            disabled={!canUpdate}
           />
-          <NumField name="JWT_EXP" step="1" />
-          <NumField name="PASSWORD_MIN_LENGTH" step="1" />
-          <ToggleField name="DISABLE_SIGNUP" />
+          <NumField name="JWT_EXP" step="1" disabled={!canUpdate} />
+          <NumField name="PASSWORD_MIN_LENGTH" step="1" disabled={!canUpdate} />
+          <ToggleField name="DISABLE_SIGNUP" disabled={!canUpdate} />
         </SchemaFormPanel>
       </div>
       <div className="my-8 mt-0">
@@ -184,6 +187,7 @@ const Settings = () => {
             }}
             checked={model.EXTERNAL_EMAIL_ENABLED}
             descriptionText={authConfig.properties.EXTERNAL_EMAIL_ENABLED.help}
+            disabled={!canUpdate}
           />
 
           <UIToggle
@@ -195,6 +199,7 @@ const Settings = () => {
             }}
             checked={model.MAILER_SECURE_EMAIL_CHANGE_ENABLED}
             descriptionText={authConfig.properties.MAILER_SECURE_EMAIL_CHANGE_ENABLED.help}
+            disabled={!canUpdate}
           />
 
           <UIToggle
@@ -208,6 +213,7 @@ const Settings = () => {
             }}
             checked={!model.MAILER_AUTOCONFIRM}
             descriptionText={authConfig.properties.MAILER_AUTOCONFIRM.help}
+            disabled={!canUpdate}
           />
 
           <UIToggle
@@ -233,6 +239,7 @@ const Settings = () => {
               }
               setCustomSMTP(!isCustomSMTPEnabled)
             }}
+            disabled={!canUpdate}
           />
           {isCustomSMTPEnabled && (
             <>
@@ -240,21 +247,43 @@ const Settings = () => {
                 name="SMTP_ADMIN_EMAIL"
                 showInlineError
                 errorMessage="Please enter from email address."
+                disabled={!canUpdate}
               />
-              <AutoField name="SMTP_HOST" showInlineError errorMessage="Please enter host." />
-              <AutoField name="SMTP_PORT" showInlineError errorMessage="Please enter port." />
-              <AutoField name="SMTP_USER" showInlineError errorMessage="Please enter user." />
-              <SecretField name="SMTP_PASS" errorMessage="Please enter password." />
+              <AutoField
+                name="SMTP_HOST"
+                showInlineError
+                errorMessage="Please enter host."
+                disabled={!canUpdate}
+              />
+              <AutoField
+                name="SMTP_PORT"
+                showInlineError
+                errorMessage="Please enter port."
+                disabled={!canUpdate}
+              />
+              <AutoField
+                name="SMTP_USER"
+                showInlineError
+                errorMessage="Please enter user."
+                disabled={!canUpdate}
+              />
+              <SecretField
+                name="SMTP_PASS"
+                errorMessage="Please enter password."
+                disabled={!canUpdate}
+              />
               <AutoField
                 name="SMTP_SENDER_NAME"
                 showInlineError
                 errorMessage="Please enter from name."
+                disabled={!canUpdate}
               />
               <NumField
                 showInlineError
                 step="1"
                 name="RATE_LIMIT_EMAIL_SENT"
                 errorMessage="Please enter a value between 1 to 32767"
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -303,6 +332,7 @@ const Settings = () => {
               }}
               checked={model.EXTERNAL_PHONE_ENABLED}
               descriptionText={authConfig.properties.EXTERNAL_PHONE_ENABLED.help}
+              disabled={!canUpdate}
             />
 
             {model.EXTERNAL_PHONE_ENABLED && (
@@ -311,6 +341,7 @@ const Settings = () => {
                   name="SMS_PROVIDER"
                   showInlineError
                   errorMessage="Please enter the phone provider."
+                  disabled={!canUpdate}
                 />
                 {smsProviderModel?.SMS_PROVIDER === 'messagebird' ? (
                   <>
@@ -318,11 +349,13 @@ const Settings = () => {
                       name="SMS_MESSAGEBIRD_ACCESS_KEY"
                       showInlineError
                       errorMessage="Please enter the messagebird access key."
+                      disabled={!canUpdate}
                     />
                     <AutoField
                       name="SMS_MESSAGEBIRD_ORIGINATOR"
                       showInlineError
                       errorMessage="Please enter the messagebird originator."
+                      disabled={!canUpdate}
                     />
                   </>
                 ) : smsProviderModel?.SMS_PROVIDER === 'textlocal' ? (
@@ -331,11 +364,13 @@ const Settings = () => {
                       name="SMS_TEXTLOCAL_API_KEY"
                       showInlineError
                       errorMessage="Please enter the vonage account sid."
+                      disabled={!canUpdate}
                     />
                     <SecretField
                       name="SMS_TEXTLOCAL_SENDER"
                       showInlineError
                       errorMessage="Please enter the vonage auth token."
+                      disabled={!canUpdate}
                     />
                   </>
                 ) : smsProviderModel?.SMS_PROVIDER === 'vonage' ? (
@@ -344,16 +379,19 @@ const Settings = () => {
                       name="SMS_VONAGE_API_KEY"
                       showInlineError
                       errorMessage="Please enter the vonage account sid."
+                      disabled={!canUpdate}
                     />
                     <SecretField
                       name="SMS_VONAGE_API_SECRET"
                       showInlineError
                       errorMessage="Please enter the vonage auth token."
+                      disabled={!canUpdate}
                     />
                     <AutoField
                       name="SMS_VONAGE_FROM"
                       showInlineError
                       errorMessage="Please enter the vonage message service sid."
+                      disabled={!canUpdate}
                     />
                   </>
                 ) : (
@@ -362,16 +400,19 @@ const Settings = () => {
                       name="SMS_TWILIO_ACCOUNT_SID"
                       showInlineError
                       errorMessage="Please enter the twilio account sid."
+                      disabled={!canUpdate}
                     />
                     <SecretField
                       name="SMS_TWILIO_AUTH_TOKEN"
                       showInlineError
                       errorMessage="Please enter the twilio auth token."
+                      disabled={!canUpdate}
                     />
                     <AutoField
                       name="SMS_TWILIO_MESSAGE_SERVICE_SID"
                       showInlineError
                       errorMessage="Please enter the twilio message service sid."
+                      disabled={!canUpdate}
                     />
                   </>
                 )}
@@ -388,6 +429,7 @@ const Settings = () => {
               //
               checked={!model.SMS_AUTOCONFIRM}
               descriptionText={authConfig.properties.SMS_AUTOCONFIRM.help}
+              disabled={!canUpdate}
             />
           </>
         </SchemaFormPanel>
@@ -524,6 +566,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_APPLE_ENABLED && (
             <>
@@ -531,11 +574,13 @@ const Settings = () => {
                 name="EXTERNAL_APPLE_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_APPLE_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -553,6 +598,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_AZURE_ENABLED && (
             <>
@@ -560,16 +606,19 @@ const Settings = () => {
                 name="EXTERNAL_AZURE_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_AZURE_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
               <AutoField
                 name="EXTERNAL_AZURE_URL"
                 showInlineError
                 errorMessage="Please enter the azure tenant url."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -587,6 +636,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_BITBUCKET_ENABLED && (
             <>
@@ -594,11 +644,13 @@ const Settings = () => {
                 name="EXTERNAL_BITBUCKET_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_BITBUCKET_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -616,6 +668,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_DISCORD_ENABLED && (
             <>
@@ -623,11 +676,13 @@ const Settings = () => {
                 name="EXTERNAL_DISCORD_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_DISCORD_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -645,6 +700,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_FACEBOOK_ENABLED && (
             <>
@@ -652,11 +708,13 @@ const Settings = () => {
                 name="EXTERNAL_FACEBOOK_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_FACEBOOK_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -674,6 +732,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_GITHUB_ENABLED && (
             <>
@@ -681,11 +740,13 @@ const Settings = () => {
                 name="EXTERNAL_GITHUB_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_GITHUB_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -703,6 +764,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_GITLAB_ENABLED && (
             <>
@@ -710,11 +772,13 @@ const Settings = () => {
                 name="EXTERNAL_GITLAB_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_GITLAB_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -732,6 +796,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_GOOGLE_ENABLED && (
             <>
@@ -739,11 +804,13 @@ const Settings = () => {
                 name="EXTERNAL_GOOGLE_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_GOOGLE_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -795,6 +862,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_LINKEDIN_ENABLED && (
             <>
@@ -802,11 +870,13 @@ const Settings = () => {
                 name="EXTERNAL_LINKEDIN_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_LINKEDIN_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -824,6 +894,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_NOTION_ENABLED && (
             <>
@@ -831,11 +902,13 @@ const Settings = () => {
                 name="EXTERNAL_NOTION_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_NOTION_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -853,6 +926,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_TWITCH_ENABLED && (
             <>
@@ -860,11 +934,13 @@ const Settings = () => {
                 name="EXTERNAL_TWITCH_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_TWITCH_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -882,6 +958,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_TWITTER_ENABLED && (
             <>
@@ -889,11 +966,13 @@ const Settings = () => {
                 name="EXTERNAL_TWITTER_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_TWITTER_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -911,6 +990,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_SLACK_ENABLED && (
             <>
@@ -918,11 +998,13 @@ const Settings = () => {
                 name="EXTERNAL_SLACK_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_SLACK_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -940,6 +1022,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_SPOTIFY_ENABLED && (
             <>
@@ -947,11 +1030,13 @@ const Settings = () => {
                 name="EXTERNAL_SPOTIFY_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_SPOTIFY_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}
@@ -1003,6 +1088,7 @@ const Settings = () => {
                 </a>
               )
             }
+            disabled={!canUpdate}
           />
           {externalProvidersModel.EXTERNAL_ZOOM_ENABLED && (
             <>
@@ -1010,11 +1096,13 @@ const Settings = () => {
                 name="EXTERNAL_ZOOM_CLIENT_ID"
                 showInlineError
                 errorMessage="Please enter the client id."
+                disabled={!canUpdate}
               />
               <SecretField
                 name="EXTERNAL_ZOOM_SECRET"
                 showInlineError
                 errorMessage="Please enter the secret."
+                disabled={!canUpdate}
               />
             </>
           )}

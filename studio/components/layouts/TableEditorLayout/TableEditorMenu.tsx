@@ -21,7 +21,7 @@ import {
 import { PostgresSchema, PostgresTable } from '@supabase/postgres-meta'
 
 import Base64 from 'lib/base64'
-import { useStore } from 'hooks'
+import { usePermissions, useStore } from 'hooks'
 import { SchemaView } from './TableEditorLayout.types'
 import ProductMenuItem from 'components/ui/ProductMenu/ProductMenuItem'
 
@@ -50,6 +50,7 @@ const TableEditorMenu: FC<Props> = ({
   const [searchText, setSearchText] = useState<string>('')
   const [schemaViews, setSchemaViews] = useState<SchemaView[]>([])
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false)
+  const canCreate = usePermissions('TENANT_CREATE', 'postgres.public')
 
   // We may need to shift this to the schema store and do something like meta.schema.loadViews()
   // I don't need we need a separate store for views
@@ -129,7 +130,7 @@ const TableEditorMenu: FC<Props> = ({
       </div>
 
       <div className="space-y-1">
-        {selectedSchema === 'public' && (
+        {selectedSchema === 'public' && canCreate && (
           <div className="px-3">
             {/* Add new table button */}
             <Button
