@@ -46,22 +46,20 @@ const OrgSettings = () => {
     organization: {},
     projects: [],
     members: [],
-    products: [],
     membersFilterString: '',
     get isOrgOwner() {
-      return (
-        this.members.find((x: any) => x.profile.id === this.user?.id && x.is_owner) != undefined
-      )
+      return this.members.find((x: any) => x.user_id === this.user?.id && x.is_owner) != undefined
     },
     get filteredMembers() {
-      const temp = this.members.filter((x: any) => {
-        let profile = x.profile
-        return (
-          profile.username.includes(this.membersFilterString) ||
-          profile.primary_email.includes(this.membersFilterString)
-        )
-      })
-      return temp.sort((a: any, b: any) => a.profile.username.localeCompare(b.profile.username))
+      const temp = this.members.filter(
+        ({ username, primary_email }: { username: string; primary_email: string }) => {
+          return (
+            username.includes(this.membersFilterString) ||
+            primary_email.includes(this.membersFilterString)
+          )
+        }
+      )
+      return temp.sort((a: any, b: any) => a.username.localeCompare(b.username))
     },
     initData(organization: any, user: any, projects: any) {
       this.organization = organization
@@ -121,18 +119,15 @@ const PageLayout = observer(() => {
 const OrganizationSettings = observer(() => {
   const PageState: any = useContext(PageContext)
   const { ui } = useStore()
-  const {
-    members,
-    products,
-    isError: isOrgDetailError,
-  } = useOrganizationDetail(ui.selectedOrganization?.slug || '')
+  const { members, isError: isOrgDetailError } = useOrganizationDetail(
+    ui.selectedOrganization?.slug || ''
+  )
 
   useEffect(() => {
     if (!isOrgDetailError) {
       PageState.members = members ?? []
-      PageState.products = products ?? []
     }
-  }, [members, products, isOrgDetailError])
+  }, [members, isOrgDetailError])
 
   if (!PageState.organization) return <div />
 
@@ -476,20 +471,20 @@ const MembersView = observer(() => {
           ]}
           body={[
             PageState.filteredMembers.map((x: any) => (
-              <Table.tr key={x.id}>
+              <Table.tr key={x.member_id}>
                 <Table.td>
                   <div className="flex items-center space-x-4">
                     <div>
                       <img
-                        src={`https://github.com/${x.profile.username}.png?size=80`}
+                        src={`https://github.com/${x.username}.png?size=80`}
                         width="40"
                         className="rounded-full border border-border-secondary-light dark:border-border-secondary-dark"
                       />
                     </div>
                     <div>
-                      <Typography.Text>{x.profile.username}</Typography.Text>
+                      <Typography.Text>{x.username}</Typography.Text>
                       <br />
-                      <Typography.Text type="secondary">{x.profile.primary_email}</Typography.Text>
+                      <Typography.Text type="secondary">{x.primary_email}</Typography.Text>
                     </div>
                   </div>
                 </Table.td>
@@ -550,7 +545,7 @@ const OwnerDropdown = observer(({ members, member }: any) => {
 
     confirmAlert({
       title: 'Confirm to remove',
-      message: `This is permanent! Are you sure you want to remove ${member.profile.username} ?`,
+      message: `This is permanent! Are you sure you want to remove ${member.username} ?`,
       onAsyncConfirm: async () => {
         setLoading(true)
         const response = await delete_(`${API_URL}/organizations/${orgSlug}/members/remove`, {
@@ -639,8 +634,8 @@ const OwnerDropdown = observer(({ members, member }: any) => {
         text={
           <span>
             By transferring this organization, it will be solely owned by{' '}
-            <span className="dark:text-white font-medium">{member.profile.username}</span>, they
-            will also be able to remove you from the organization as a member
+            <span className="dark:text-white font-medium">{member.username}</span>, they will also
+            be able to remove you from the organization as a member
           </span>
         }
       />
